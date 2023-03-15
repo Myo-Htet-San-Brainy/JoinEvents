@@ -1,15 +1,32 @@
 const CustomError = require('../errors');
 const User = require('../models/user')
 const {attachCookiesToResponse} = require('../utils')
+const crypto = require('crypto')
 
 const register = async (req, res) => {
     //create user
+    const verificationToken = crypto.randomBytes(40).toString('hex')
+    req.body.verificationToken = verificationToken
     const user = await User.create(req.body)
-    //cookies(jwt) and response
-    const {rsuEmail, name} = user
-    const payload = {rsuEmail, name}
-    attachCookiesToResponse(res, payload)
-    res.json({user})
+    //send email verification token to the email used to register
+    
+    res.json({user, verificationToken})
+}
+
+const verifyEmail = async (req, res) => {
+    const { rsuEmail, verificationToken} = req.body
+    const user = await User.findOne({rsuEmail})
+    if (!user) {
+        throw new CustomError.UnauthenticatedError('Verification Failed')
+    }
+    if (user.verificationToken !== verificationToken) {
+        throw new CustomError.UnauthenticatedError('Verification Failed')
+    }
+    user.isVerified = true
+    user.verifiedAt = new Date(Date.now())
+    user.verificationToken = ''
+    user.save()
+    res.json({"msg": "Verification Success!"})
 }
 
 const login = async (req, res) => {
@@ -39,6 +56,7 @@ const logout = async (req, res) => {
 module.exports = {
     login,
     register,
-    logout
+    logout,
+    verifyEmail
 }
 

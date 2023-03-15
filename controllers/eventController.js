@@ -22,7 +22,7 @@ const getSingleEvent = async (req, res) => {
     if (!event) {
         throw new CustomError.NotFoundError(`No event with id: ${eventId}`)
     }
-    res.json(event)
+    res.json({event})
 }
 
 const updateEvent = async (req, res) => {

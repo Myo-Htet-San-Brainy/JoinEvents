@@ -44,7 +44,7 @@ const userSchema = new mongoose.Schema({
         required: [true, 'LineId is required'],
     },
     phNo: {
-        type: Number,
+        type: String,
         required: [true, 'phNo is required'],
         default: 'Have not provided yet'
     },
@@ -52,6 +52,16 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Facebook link is required'],
         default: 'Have not provided yet'
+    },
+    verificationToken: {
+        type: String
+    },
+    verifiedAt: {
+        type: Date,
+    },
+    isVerified: {
+        type: Boolean,
+        default: false
     }
 }, {timestamps: true})
 
