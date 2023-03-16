@@ -1,6 +1,6 @@
 const CustomError = require('../errors');
 const User = require('../models/user')
-const {attachCookiesToResponse} = require('../utils')
+const {attachCookiesToResponse, sendVerificationEmail} = require('../utils')
 const crypto = require('crypto')
 
 const register = async (req, res) => {
@@ -9,8 +9,9 @@ const register = async (req, res) => {
     req.body.verificationToken = verificationToken
     const user = await User.create(req.body)
     //send email verification token to the email used to register
-    
-    res.json({user, verificationToken})
+    const origin = 'http://localhost:3000'
+    await sendVerificationEmail(user.name, user.rsuEmail, user.verificationToken, origin)
+    res.json({"msg": "Success! Please check your email to verify it"})
 }
 
 const verifyEmail = async (req, res) => {

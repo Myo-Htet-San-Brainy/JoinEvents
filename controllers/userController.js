@@ -48,11 +48,17 @@ const getSingleUserProfile = async (req, res) => {
     res.json({user})
 }
 
+const deleteAllUsers = async (req, res) => {
+    const users = await User.deleteMany({})
+    res.json({"msg": "Deleted all users!"})
+}
+
 module.exports = {
     getMyProfile,
     updateMyProfile,
     uploadMyImage,
     getSingleUserProfile,
-    deleteMyProfile
+    deleteMyProfile,
+    deleteAllUsers
 }
 
