@@ -42,6 +42,10 @@ const login = async (req, res) => {
     if (!isMatched) {
         throw new CustomError.UnauthenticatedError('Invalid Credentials')
     }
+    //check if verified
+    if (!user.isVerified) {
+        throw new CustomError.UnauthenticatedError('Please verify email before logging in')
+    }
     //cookies(jwt) and response
     const {name, _id} = user
     const payload = {name, id: _id}

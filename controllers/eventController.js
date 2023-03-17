@@ -2,7 +2,7 @@ const CustomError = require('../errors');
 const Event = require('../models/event')
 const User = require('../models/user');
 const UserEvent = require('../models/user-event')
-const {checkPermissions} = require('../utils')
+const {checkPermissions, sendDeleteNotiEmail, sendUpdateNotiEmail} = require('../utils')
 
 const getAllEvents = async (req, res) => {
     const events = await Event.find({})
@@ -27,27 +27,50 @@ const getSingleEvent = async (req, res) => {
 
 const updateEvent = async (req, res) => {
     const {id: eventId} = req.params
-    await checkPermissions(req.user, eventId)
-    const event = await Event.findByIdAndUpdate(eventId, req.body, {
-        runValidators: true,
-        new: true
-    })
+    const {shouldNotify} = req.body
+    const event = await Event.findById(eventId)
     if (!event) {
         throw new CustomError.NotFoundError(`No event with id: ${eventId}`)
     }
-    res.json({event})
+    await checkPermissions(req.user, eventId)
+    await Event.updateOne({_id: eventId}, req.body, {
+        runValidators: true,
+        new: true
+    })
+    //notify users who have already joined the event
+    if (shouldNotify) {
+        const userEvents = await UserEvent.find({eventId})
+        for (const iterator of userEvents) {
+            let userId = iterator.userId
+            let {name, rsuEmail} = await User.findById(userId).select({name: 1, rsuEmail: 1})
+            await sendUpdateNotiEmail(name, rsuEmail, event)
+        }
+    }
+    res.json({"msg":"Update Success!"})
 }
 
 const deleteEvent = async (req, res) => {
     const {id: eventId} = req.params
-    await checkPermissions(req.user, eventId)
-    const event = await Event.findByIdAndDelete(eventId)
+    const {shouldNotify} = req.body
+    const event = await Event.findById(eventId)
     if (!event) {
         throw new CustomError.NotFoundError(`No event with id: ${eventId}`)
     }
+    await checkPermissions(req.user, eventId)
+   // event.remove()
+    //notify users who have already joined the event
+    if (shouldNotify) {
+        const userEvents = await UserEvent.find({eventId})
+        for (const iterator of userEvents) {
+            let userId = iterator.userId
+            let {name, rsuEmail} = await User.findById(userId).select({name: 1, rsuEmail: 1})
+            await sendDeleteNotiEmail(name, rsuEmail, event)
+        }
+    }
     //delete all userEvents 
-    const userEvents = await UserEvent.deleteMany({eventId})
-    res.json({event})
+   // const deletionInfo = await UserEvent.deleteMany({eventId})
+    
+    res.json({"msg":"Deletion Success!"})
 }
 
 const createEvent = async (req, res) => {
