@@ -12,7 +12,7 @@ const register = async (req, res) => {
     //send email verification token to the email used to register
     const origin = 'http://localhost:3000'
     await sendVerificationEmail(user.name, user.rsuEmail, user.verificationToken, origin)
-    res.json({"msg": "Success! Please check your email to verify it", verificationToken})
+    res.json({"msg": "Success! Please check your email to verify it"})
 }
 
 const verifyEmail = async (req, res) => {
@@ -106,8 +106,6 @@ const resetPassword = async (req, res) => {
     
     if (user) {
         const currentDate = new Date(Date.now())
-        console.log(user.passwordToken === passwordResetToken );
-        console.log(user.passwordTokenExpirationDate > currentDate );
         if (user.passwordToken === passwordResetToken && user.passwordTokenExpirationDate > currentDate) {
             user.password = password
             user.passwordToken = null
@@ -119,7 +117,22 @@ const resetPassword = async (req, res) => {
 }
 
 const logout = async (req, res) => {
-    res.clearCookie('token')
+    //delete token related to user
+    await Token.findOneAndDelete({userId: req.user.id})
+    //remove all cookies
+    res.cookie('accessCookie', 'log out', {
+        httpOnly: true,
+        expires: new Date(Date.now()),
+        secure: process.env.NODE_ENV === 'production',
+        signed: true
+    })
+
+    res.cookie('refreshCookie', 'log out', {
+        httpOnly: true,
+        expires: new Date(Date.now()),
+        secure: process.env.NODE_ENV === 'production',
+        signed: true        
+    })
     res.json({"msg": "Success!"})
 }
 

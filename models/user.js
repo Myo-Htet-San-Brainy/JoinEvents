@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs')
 const userSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: [true, 'Name is required']
+        required: [true, 'Name is required'],
     },
     rsuEmail: {
         type: String,
@@ -13,6 +13,8 @@ const userSchema = new mongoose.Schema({
         validate: {
             validator: function(v) {
                 return /\b[A-Z0-9._%+-]+@rsu.ac.th\b/i.test(v);
+                // return /\b[A-Z0-9._%+-]+@gmail.com\b/i.test(v);
+
             },
             message: props => `${props.value} is not a valid RSU email`
         }

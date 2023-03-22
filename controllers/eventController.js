@@ -41,8 +41,11 @@ const updateEvent = async (req, res) => {
         const userEvents = await UserEvent.find({eventId})
         for (const iterator of userEvents) {
             let userId = iterator.userId
-            let {name, rsuEmail} = await User.findById(userId).select({name: 1, rsuEmail: 1})
-            await sendUpdateNotiEmail(name, rsuEmail, event)
+            const user = await User.findById(userId).select({name: 1, rsuEmail: 1})
+            if (user) {
+                let { name, rsuEmail } = user
+                await sendUpdateNotiEmail(name, rsuEmail, event)
+            }
         }
     }
     res.json({"msg":"Update Success!"})
@@ -56,14 +59,16 @@ const deleteEvent = async (req, res) => {
     }
     await checkPermissions(req.user, eventId)
     event.remove()
-    console.log(event);
     //notify users who have already joined the event
     if (new Date(Date.now()) < event.dateAndTime) {
         const userEvents = await UserEvent.find({eventId})
         for (const iterator of userEvents) {
             let userId = iterator.userId
-            let {name, rsuEmail} = await User.findById(userId).select({name: 1, rsuEmail: 1})
-            await sendDeleteNotiEmail(name, rsuEmail, event)
+            const user = await User.findById(userId).select({name: 1, rsuEmail: 1})
+            if (user) {
+                let { name, rsuEmail } = user
+                await sendDeleteNotiEmail(name, rsuEmail, event)
+            }
         }
     }
     //delete all userEvents 
@@ -76,7 +81,7 @@ const createEvent = async (req, res) => {
     req.body.createdBy = req.user.id
     req.body.dateAndTime = new Date(req.body.dateAndTime)
     const event = await Event.create(req.body)
-    res.json({event})
+    res.json({"msg": "Creation Success!"})
 }
 
 const joinEvent = async (req, res) => {
@@ -107,7 +112,7 @@ const joinEvent = async (req, res) => {
         return
     }
     //create and persist user-event doc to query users who joined this event
-    const userEvent = await UserEvent.create({eventId, userId: user._id})
+    await UserEvent.create({eventId, userId: user._id})
     //decrement noOfSeats, change event status based on that
     event.noOfSeats -= 1
     if (event.noOfSeats === 0) {
@@ -123,7 +128,9 @@ const getUsersJoined = async (req, res) => {
     const usersJoined = []
     for (const iterator of userEvents) {
         const user = await User.findById(iterator.userId)
-        usersJoined.push(user)
+        if (user) {
+            usersJoined.push(user)
+        }
     }
     res.json({usersJoined, noOfUsersJoined: usersJoined.length})
 }
@@ -138,7 +145,9 @@ const showEventsIJoined = async (req, res) => {
     const eventsIJoined = []
     for (const iterator of userEvents) {
         const event = await Event.findById(iterator.eventId)
-        eventsIJoined.push(event)
+        if (event) {
+            eventsIJoined.push(event)
+        }
     }
     res.json({eventsIJoined, noOfEventsIJoined: eventsIJoined.length})
 }
