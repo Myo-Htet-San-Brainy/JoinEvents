@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs')
 const userSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: [true, 'Name is required'],
+        required: [true, 'Name is required']
     },
     rsuEmail: {
         type: String,
@@ -62,10 +62,19 @@ const userSchema = new mongoose.Schema({
     isVerified: {
         type: Boolean,
         default: false
+    },
+    passwordToken: {
+        type: String
+    },
+    passwordTokenExpirationDate: {
+        type: Date
     }
 }, {timestamps: true})
 
 userSchema.pre('save', async function() {
+    if (!this.isModified('password')) {
+        return
+    }
     const salt = await bcrypt.genSalt(10)
     this.password = await bcrypt.hash(this.password, salt)
 })

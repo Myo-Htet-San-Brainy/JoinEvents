@@ -1,5 +1,6 @@
 const CustomError = require('../errors');
 const User = require('../models/user')
+const Token = require('../models/token')
 const Event = require('../models/event')
 const cloudinary = require('cloudinary').v2
 
@@ -49,7 +50,9 @@ const getSingleUserProfile = async (req, res) => {
 }
 
 const deleteAllUsers = async (req, res) => {
-    const users = await User.deleteMany({})
+    await User.deleteMany({})
+    //also all tokens
+    await Token.deleteMany({})
     res.json({"msg": "Deleted all users!"})
 }
 

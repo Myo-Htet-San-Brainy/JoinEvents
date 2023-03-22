@@ -27,7 +27,6 @@ const getSingleEvent = async (req, res) => {
 
 const updateEvent = async (req, res) => {
     const {id: eventId} = req.params
-    const {shouldNotify} = req.body
     const event = await Event.findById(eventId)
     if (!event) {
         throw new CustomError.NotFoundError(`No event with id: ${eventId}`)
@@ -38,7 +37,7 @@ const updateEvent = async (req, res) => {
         new: true
     })
     //notify users who have already joined the event
-    if (shouldNotify) {
+    if (new Date(Date.now()) < event.dateAndTime) {
         const userEvents = await UserEvent.find({eventId})
         for (const iterator of userEvents) {
             let userId = iterator.userId
@@ -51,15 +50,15 @@ const updateEvent = async (req, res) => {
 
 const deleteEvent = async (req, res) => {
     const {id: eventId} = req.params
-    const {shouldNotify} = req.body
     const event = await Event.findById(eventId)
     if (!event) {
         throw new CustomError.NotFoundError(`No event with id: ${eventId}`)
     }
     await checkPermissions(req.user, eventId)
-   // event.remove()
+    event.remove()
+    console.log(event);
     //notify users who have already joined the event
-    if (shouldNotify) {
+    if (new Date(Date.now()) < event.dateAndTime) {
         const userEvents = await UserEvent.find({eventId})
         for (const iterator of userEvents) {
             let userId = iterator.userId
@@ -68,13 +67,14 @@ const deleteEvent = async (req, res) => {
         }
     }
     //delete all userEvents 
-   // const deletionInfo = await UserEvent.deleteMany({eventId})
+    await UserEvent.deleteMany({eventId})
     
     res.json({"msg":"Deletion Success!"})
 }
 
 const createEvent = async (req, res) => {
     req.body.createdBy = req.user.id
+    req.body.dateAndTime = new Date(req.body.dateAndTime)
     const event = await Event.create(req.body)
     res.json({event})
 }
