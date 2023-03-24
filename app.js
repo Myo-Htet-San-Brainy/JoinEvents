@@ -60,7 +60,7 @@ app.use('/api/v1/event/', eventRouter)
 app.use(notFoundMiddleware)
 app.use(errorHandlerMiddleware)
 
-const port = 5000 || process.env.PORT
+const port = process.env.PORT || 5000
 const starter = () => {
     try {
         connectDB(process.env.MONGO_URL)
