@@ -17,7 +17,7 @@ const updateMyProfile = async (req, res) => {
         runValidators: true,
         new: true
     })
-    res.json({user})
+    res.json({"msg": "Update Profile Success!"})
 }
 
 const deleteMyProfile = async (req, res) => {
@@ -84,11 +84,12 @@ const getSingleUserProfile = async (req, res) => {
     res.json({user})
 }
 
+//temp
 const deleteAllUsers = async (req, res) => {
     await User.deleteMany({})
     //also all tokens
     await Token.deleteMany({})
-    res.json({"msg": "Deleted all users!"})
+    res.json({"msg": "All users deletion Success!"})
 }
 
 module.exports = {

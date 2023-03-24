@@ -1,7 +1,7 @@
 const CustomError = require('../errors');
 const User = require('../models/user')
 const Token = require('../models/token')
-const {attachCookiesToResponse, sendVerificationEmail, sendPasswordReset} = require('../utils')
+const {attachCookiesToResponse, sendVerificationEmail, sendPasswordReset, createHash} = require('../utils')
 const crypto = require('crypto');
 
 const register = async (req, res) => {
@@ -12,7 +12,7 @@ const register = async (req, res) => {
     //send email verification token to the email used to register
     const origin = 'http://localhost:3000'
     await sendVerificationEmail(user.name, user.rsuEmail, user.verificationToken, origin)
-    res.json({"msg": "Success! Please check your email to verify it"})
+    res.json({"msg": "Registration success! Please check your email to verify it"})
 }
 
 const verifyEmail = async (req, res) => {
@@ -62,7 +62,7 @@ const login = async (req, res) => {
         refreshToken = existingToken.refreshToken
         userInfoWithRefreshToken = {name, id: _id, refreshToken}
         attachCookiesToResponse(res, userInfo, userInfoWithRefreshToken)
-        res.json({"msg": "Success!"})
+        res.json({"msg": "Logging in success!"})
         return
     }
     //for first time logging in
@@ -74,7 +74,7 @@ const login = async (req, res) => {
     userInfoWithRefreshToken = {name, id: _id, refreshToken}
 
     attachCookiesToResponse(res, userInfo, userInfoWithRefreshToken)
-    res.json({"msg": "Success!"})
+    res.json({"msg": "Logging in success!"})
 }
 
 const forgotPassword = async (req, res) => {
@@ -89,12 +89,12 @@ const forgotPassword = async (req, res) => {
         //send Email
         const origin = 'http://localhost:3000'
         sendPasswordReset(user.name, user.rsuEmail, passwordToken, origin)
-        user.passwordToken = passwordToken
+        user.passwordToken = createHash(passwordToken) 
         user.passwordTokenExpirationDate = new Date(Date.now() + passwordTokenExpirationDate) 
         await user.save()
     }
     
-    res.json({"msg": "Please check your email for password reset link"})
+    res.json({"msg": "Success! Please check your email for password reset link"})
 }
 
 const resetPassword = async (req, res) => {
@@ -106,7 +106,7 @@ const resetPassword = async (req, res) => {
     
     if (user) {
         const currentDate = new Date(Date.now())
-        if (user.passwordToken === passwordResetToken && user.passwordTokenExpirationDate > currentDate) {
+        if (user.passwordToken === createHash(passwordResetToken) && user.passwordTokenExpirationDate > currentDate) {
             user.password = password
             user.passwordToken = null
             user.passwordTokenExpirationDate = null
@@ -133,7 +133,7 @@ const logout = async (req, res) => {
         secure: process.env.NODE_ENV === 'production',
         signed: true        
     })
-    res.json({"msg": "Success!"})
+    res.json({"msg": "Logging out Success!"})
 }
 
 module.exports = {

@@ -48,7 +48,7 @@ const updateEvent = async (req, res) => {
             }
         }
     }
-    res.json({"msg":"Update Success!"})
+    res.json({"msg":"Event Update Success!"})
 }
 
 const deleteEvent = async (req, res) => {
@@ -74,14 +74,14 @@ const deleteEvent = async (req, res) => {
     //delete all userEvents 
     await UserEvent.deleteMany({eventId})
     
-    res.json({"msg":"Deletion Success!"})
+    res.json({"msg":"Event Deletion Success!"})
 }
 
 const createEvent = async (req, res) => {
     req.body.createdBy = req.user.id
     req.body.dateAndTime = new Date(req.body.dateAndTime)
     const event = await Event.create(req.body)
-    res.json({"msg": "Creation Success!"})
+    res.json({"msg": "Event Creation Success!"})
 }
 
 const joinEvent = async (req, res) => {
@@ -119,7 +119,7 @@ const joinEvent = async (req, res) => {
         event.status = 'full of seats'  
     }
     event.save()
-    res.json({"msg": "You have joined the event!"})
+    res.json({"msg": "Success! You have joined the event!"})
 }
 
 const getUsersJoined = async (req, res) => {
@@ -156,7 +156,7 @@ const showEventsIJoined = async (req, res) => {
 const clearAllData = async (req, res) => {
     await Event.deleteMany({})
     await UserEvent.deleteMany({})
-    res.send('all data deleted')
+    res.send('all data deletion Success')
 }
 
 module.exports = {
